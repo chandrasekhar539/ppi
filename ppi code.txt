@@ -1,0 +1,41 @@
+$file = "https://github.com/chandrasekhar539/ppi/raw/main/PPI%20import.csv";
+  if (($h = fopen($file, "r")) !== FALSE) {
+  	$count = 0;
+    // Convert each line into the local $data variable
+
+  while (($data = fgetcsv($h, 100000, ",")) !== FALSE) {
+if($count > 1500) {
+   $part_number = $data[0];
+//print $part_number;
+   $preference = $data[1];
+$nids = db_query("SELECT entity_id FROM {field_data_field_12nc} WHERE bundle = 'sourcing_request' AND field_12nc_value = $data[0]")->fetchAll();
+foreach($nids as $key=>$value) {
+  $nid = $value->entity_id;
+$node = node_load($nid); 
+if (isset($node)) {
+  if($preference == 'Blocked')
+     $preference = '1-Blocked';
+   if($preference == 'Not Preferred')
+     $preference = '2-Not Preferred';
+   if($preference == 'To be determined')
+     $preference = '3-To be determined';
+  if($preference == 'Allowed')
+     $preference = '5-Allowed';
+ if($preference == 'Preferred')
+     $preference = '9-Preferred';
+  $field_language = field_language('node', $node, 'field_part_preference');
+  $node->field_part_preference[$field_language][0]['value'] = $preference;
+  node_save($node);
+}//if 
+}//foreach
+       print $count;
+}//if
+if($count > 2000){ 
+print $count;print $part_number;die;
+}
+$count++;
+}//while
+}//if
+
+//$nids = db_query("SELECT entity_id FROM {field_data_field_12nc} WHERE bundle = 'sourcing_request' AND field_12nc_value = 300010011091")->fetchAll();
+//print_r($nids);
